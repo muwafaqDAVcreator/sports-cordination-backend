@@ -2,33 +2,27 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Athlete;
 use App\Models\Event;
+use App\Models\Result;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller {
     public function index(Request $request) {
         $user = $request->user();
+        $eventIds = Event::visibleTo($user)->pluck('id');
 
-        $todayEvents = Event::forUser($user->id)
-            ->today()
-            ->with('athletes')
-            ->get();
-
-        $totalEvents = Event::forUser($user->id)->count();
-
-        $totalAthletes = \DB::table('athletes')
-            ->whereIn('event_id', Event::forUser($user->id)->pluck('id'))
-            ->count();
+        $todayEvents = Event::whereIn('id', $eventIds)->today()->with(['athletes', 'delays'])->orderBy('start_time')->get();
 
         return response()->json([
             'success' => true,
             'data' => [
                 'today_events' => $todayEvents,
                 'stats' => [
-                    'total_events' => $totalEvents,
-                    'total_athletes' => $totalAthletes,
-                    'results_entered' => 0,
-                    'pending_changes' => 0,
+                    'total_events' => $eventIds->count(),
+                    'total_athletes' => Athlete::whereIn('event_id', $eventIds)->count(),
+                    'results_entered' => Result::whereIn('event_id', $eventIds)->count(),
+                    'pending_changes' => 0, // the device reports its own queue length
                 ],
                 'last_sync_time' => $user->last_sync_at,
             ],

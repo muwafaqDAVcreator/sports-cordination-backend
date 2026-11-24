@@ -27,7 +27,7 @@ class AuthController extends Controller {
 
         return response()->json([
             'success' => true,
-            'user' => $user,
+            'user' => $user->fresh(),
             'token' => $token,
         ], 201);
     }
@@ -41,9 +41,11 @@ class AuthController extends Controller {
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Invalid credentials'],
-            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials',
+                'errors' => ['email' => ['Invalid credentials']],
+            ], 401);
         }
 
         $user->update(['last_sync_at' => now()]);
@@ -59,6 +61,18 @@ class AuthController extends Controller {
     public function logout(Request $request) {
         $request->user()->tokens()->delete();
         return response()->json(['success' => true]);
+    }
+
+    /** Issue a fresh token and revoke the one used for this request. */
+    public function refresh(Request $request) {
+        $user = $request->user();
+        $current = $user->currentAccessToken();
+        $token = $user->createToken('auth-token')->plainTextToken;
+        if ($current && method_exists($current, 'delete')) {
+            $current->delete();
+        }
+
+        return response()->json(['success' => true, 'user' => $user, 'token' => $token]);
     }
 
     public function getUser(Request $request) {
