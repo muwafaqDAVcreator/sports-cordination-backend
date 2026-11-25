@@ -327,7 +327,7 @@ class SyncService {
 
     private function applyRevisedStart(ScheduleDelay $delay): void {
         $event = $delay->event;
-        $total = $event->delays()->sum('delay_minutes');
+        $total = (int) $event->delays()->sum('delay_minutes');
         $delay->revised_start_time = Carbon::parse($event->start_time)->addMinutes($total)->format('H:i');
         $delay->saveQuietly();
     }

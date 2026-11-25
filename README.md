@@ -4,6 +4,8 @@ Laravel REST API for the **Offline-First Mobile Sports Event Coordination System
 
 It serves the React Native app in [`sports-cordination-frontend`](https://github.com/muwafaqDAVcreator/sports-cordination-frontend).
 
+A test deployment is live at `https://api-app.muwamurad.com/api` (Ubuntu 24.04, Nginx, PHP 8.3-FPM, MySQL 8, HTTPS via Let's Encrypt behind Cloudflare).
+
 ## Features
 
 - Token authentication (Laravel Sanctum) with coordinator and administrator roles

@@ -23,7 +23,7 @@ class DelayController extends Controller {
             'uuid' => 'nullable|uuid|unique:schedule_delays,uuid',
         ]);
 
-        $total = $event->delays()->sum('delay_minutes') + $validated['delay_minutes'];
+        $total = (int) $event->delays()->sum('delay_minutes') + (int) $validated['delay_minutes'];
 
         $delay = $event->delays()->create([
             ...$validated,
